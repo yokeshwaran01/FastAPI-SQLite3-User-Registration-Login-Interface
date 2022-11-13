@@ -15,7 +15,7 @@ This web application allows users to conduct tasks like login in and new user re
 
 2.database.py-file used by the API(For Database connection)
 
-3.schemes.py-It loads the format of inputs and outputs
+3.schemas.py-It loads the format of inputs and outputs
 
 # Install and Setup
 
