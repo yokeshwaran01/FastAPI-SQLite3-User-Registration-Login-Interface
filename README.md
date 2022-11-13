@@ -4,6 +4,8 @@ This web application allows users to conduct tasks like login in and new user re
 # Python Library
 >fastapi
 
+>uvicorn
+
 >sqlalchemy
 
 >passlib
