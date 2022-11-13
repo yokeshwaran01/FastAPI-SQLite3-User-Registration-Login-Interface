@@ -23,7 +23,7 @@ For installing,follow these steps
 
 1.Install Python 3.10
 
-2.Install FastAPI package
+2.Install FastAPI,uvicorn
 
 3.Install SQLite3
 
@@ -37,4 +37,9 @@ For installing,follow these steps
 
 8.Start the server
 
+# Server StartUp
+
+To run the server,run the following command in the python terminal:
+
+uvicorn main:app --reload
 
