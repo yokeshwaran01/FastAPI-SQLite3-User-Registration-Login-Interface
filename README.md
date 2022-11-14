@@ -43,5 +43,5 @@ For installing,follow these steps
 
 To run the server,run the following command in the python terminal:
 
-uvicorn main:app --reload
+uvicorn interface:app --reload
 
