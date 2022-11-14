@@ -20,3 +20,15 @@ class User(BaseModel):
 
     class Config:
         orm_mode = True
+
+class Detail(BaseModel):
+    id: int
+    username: str
+    email: str
+    phone: int
+    full_name: str
+    disabled: bool
+    hashed_password: str
+
+    class Config:
+        orm_mode = True
