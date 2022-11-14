@@ -3,7 +3,7 @@ from sqlalchemy.orm import declarative_base
 from sqlalchemy import Boolean, Column, Integer, String
 from sqlalchemy.ext.asyncio import AsyncSession
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./sqlite3.db"
+SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
 engine = create_async_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
@@ -11,7 +11,7 @@ engine = create_async_engine(
 
 Base = declarative_base()
 
-
+#dependency
 async def get_db():
     session = AsyncSession(engine)
     try:
@@ -21,7 +21,7 @@ async def get_db():
 
 
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = 'NewRecords0'
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
