@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 import database
-from schemas import Token, TokenData, User
+from schemas import Token, TokenData, User, Detail
 
 
 # to get a string like this run:
@@ -25,23 +25,31 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 app = FastAPI()
 
-
 @app.on_event("startup")
 async def start_db():
     async with database.engine.begin() as conn:
         await conn.run_sync(database.Base.metadata.create_all)
 
 
+def create_user(db: AsyncSession, detail: Detail):
+    #hashed_password= pwd_context.hash(detail.password)
+    db_cred = Detail(**detail.dict())                              #creating new user
+    db.add(db_cred)
+    db.commit()
+    db.refresh(db_cred)
+    return db_cred
+
+
 def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+    return pwd_context.verify(plain_password, hashed_password)        #check whether the password is present in the db
 
 
 def get_password_hash(password):
-    return pwd_context.hash(password)
+    return pwd_context.hash(password)                                  #hashing the password
 
 
 async def get_user(db: AsyncSession, username: str) -> database.User:
-    result = await db.execute(select(database.User).filter_by(username=username))
+    result = await db.execute(select(database.User).filter_by(username=username))         #check whether the username is present in the db
     return result.scalars().first()
 
 
@@ -49,7 +57,7 @@ async def authenticate_user(db: AsyncSession, username: str, password: str) -> d
     user = await get_user(db, username)
     if not user:
         return False
-    if not verify_password(password, user.hashed_password):
+    if not verify_password(password, user.hashed_password):                                #check the username and password belongs to same user
         return False
     return user
 
@@ -60,7 +68,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
         expire = datetime.utcnow() + expires_delta
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
+    to_encode.update({"exp": expire})                                                     #tokenization
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
@@ -87,7 +95,7 @@ async def get_current_user(db: AsyncSession = Depends(database.get_db), token: s
 
 async def get_current_active_user(current_user: User = Depends(get_current_user)) -> database.User:
     if current_user.disabled:
-        raise HTTPException(status_code=400, detail="Inactive user")
+        raise HTTPException(status_code=400, detail="Inactive user")         #check whether the user is active or not
     return current_user
 
 
@@ -96,7 +104,7 @@ async def login_for_access_token(db: AsyncSession = Depends(database.get_db), fo
     user = await authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_401_UNAUTHORIZED,                     #logging in
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
@@ -109,4 +117,8 @@ async def login_for_access_token(db: AsyncSession = Depends(database.get_db), fo
 
 @app.get("/users/me/", response_model=User)
 async def read_users_me(current_user: User = Depends(get_current_active_user)):
-    return current_user
+    return current_user                                                             #show the details of the user who logged in
+
+@app.post("/users/register/", response_model=Detail)
+async def create_new_user(item: Detail, db:  AsyncSession = Depends(database.get_db)):    #posting the details of new user
+    return create_user(db=db, detail=item)
